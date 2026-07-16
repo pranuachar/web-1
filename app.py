@@ -1,28 +1,31 @@
+from flask import Flask, render_template, jsonify
 import mysql.connector
-from flask import Flask, render_template
 
 app = Flask(__name__)
-
-def get_product():
-    conn = mysql.connector.connect(
+def get_connection():
+    return mysql.connector.connect(
         host="localhost",
         user="root",
         password="pranu_achar@07",
-        database="product"
+        database="product"     
     )
+def get_products():
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
 
-    cur = conn.cursor(dictionary=True)
-    cur.execute("SELECT id, name, price FROM product")
-    rows = cur.fetchall()
+    cursor.execute("SELECT * FROM product")  
+    data = cursor.fetchall()
 
-    cur.close()
+    cursor.close()
     conn.close()
 
-    return rows
-
-@app.route("/")
+    return data
+@app.route('/')
 def home():
-    return render_template("index.html", products=get_product())
+    return render_template("index.html")
+@app.route('/api/products')
+def api_products():
+    return jsonify(get_products())
 
 if __name__ == "__main__":
     app.run(debug=True)
